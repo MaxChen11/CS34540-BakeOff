@@ -198,12 +198,13 @@ public class BakeOff1 extends PApplet {
 
 		if (trials.get(trialNum) == i) // see if current button is the target
 			fill(0, 255, 255); // if so, fill cyan
-		else if (trials.get(trialNum) == i + 1) {
-			int boundaryBuffer = 10;
+		else if (trials.get(trialNum + 1) == i) {
+			int boundaryBuffer = 4;
 			fill(0, 255, 0);
 			rect(bounds.x - boundaryBuffer/2, bounds.y - boundaryBuffer/2, bounds.width + boundaryBuffer, bounds.height + boundaryBuffer);
 			fill(0, 0, 0);
 			rect(bounds.x, bounds.y, bounds.width, bounds.height);
+			return;
 		}
 		else
 			fill(200); // if not, fill gray
