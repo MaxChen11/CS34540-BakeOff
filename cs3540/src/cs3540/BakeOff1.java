@@ -196,7 +196,7 @@ public class BakeOff1 extends PApplet {
 	public void drawButton(int i) {
 		Rectangle bounds = getButtonLocation(i);
 
-		if (trials.get(trialNum) == i) // see if current button is the target
+		if (trials.get(trialNum) == 	i) // see if current button is the target
 			fill(0, 255, 255); // if so, fill cyan
 		else if (trials.get(trialNum + 1) == i) {
 			int boundaryBuffer = 4;
