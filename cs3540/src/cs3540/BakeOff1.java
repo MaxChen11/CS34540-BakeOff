@@ -162,8 +162,8 @@ public class BakeOff1 extends PApplet {
 		Rectangle bounds = getButtonLocation(trials.get(trialNum));
 
 		// check to see if cursor was inside button
-		if ((pressMouseX > bounds.x && pressMouseX < bounds.x + bounds.width)
-				&& (pressMouseX > bounds.y && pressMouseX < bounds.y + bounds.height)) // test to see if hit was within bounds
+		if ((pressMouseX > bounds.x && pressMouseX < bounds.x + bounds.width) &&
+			    (pressMouseY > bounds.y && pressMouseY < bounds.y + bounds.height)) // test to see if hit was within bounds
 		{
 			System.out.println("HIT! " + trialNum + " " + (millis() - startTime)); // success
 			hits++;
@@ -339,86 +339,37 @@ public class BakeOff1 extends PApplet {
 		// https://processing.org/reference/mouseDragged_.html
 	}
 
+	// can use the keyboard if you wish
+	// https://processing.org/reference/keyTyped_.html
+	// https://processing.org/reference/keyCode.html
 	public void keyPressed() {
-		Point windowPos = new Point(0, 0);
-		Window window = SwingUtilities.getWindowAncestor((Component) surface.getNative());
-		if (window != null) {
-			windowPos = window.getLocationOnScreen();
-		}
-		
-		if (key == '1' || key == '2' || key == '3' || key == '4') {
-			
-		
-		
-		if (firstNumSelect) 
-		{
-			yCoord = 0;
-			switch(key) {
-			case '1':
-				currButtonSelected = 0;
-				firstNumSelect = !firstNumSelect;
-				xCoord = 1;
-				break;
-			case '2':
-				currButtonSelected = 1;
-				firstNumSelect = !firstNumSelect;
-				xCoord = 2;
-				break;
-			case '3':
-				currButtonSelected = 2;
-				firstNumSelect = !firstNumSelect;
-				xCoord = 3;
-				break;
-			case '4':
-				currButtonSelected = 3;
-				firstNumSelect = !firstNumSelect;
-				xCoord = 4;
-				break;
-			default:
-				break;
-			}
-			
-			Rectangle selectedButton = getButtonLocation(currButtonSelected);
+	    // Get the position of the application window on the screen
+	    Point windowPos = new Point(0, 0);
+	    Window window = SwingUtilities.getWindowAncestor((Component) surface.getNative());
+	    if (window != null) {
+	        windowPos = window.getLocationOnScreen();
+	    }
 
-			robot.mouseMove(selectedButton.x + selectedButton.width*3/4 + windowPos.x, 
-							selectedButton.y + selectedButton.height*4/3 + windowPos.y);
-		} 
-		else if (!firstNumSelect) 
-		{
-			switch(key) {
-			case '1':
-				currButtonSelected += 0;
-				firstNumSelect = !firstNumSelect;
-				yCoord = 1;
-				break;
-			case '2':
-				currButtonSelected += 4;
-				firstNumSelect = !firstNumSelect;
-				yCoord = 2;
-				break;
-			case '3':
-				currButtonSelected += 8;
-				firstNumSelect = !firstNumSelect;
-				yCoord = 3;
-				break;
-			case '4':
-				currButtonSelected += 12;
-				firstNumSelect = !firstNumSelect;
-				yCoord = 4;
-				break;
-			default:
-				break;
-			}
-			Rectangle selectedButton = getButtonLocation(currButtonSelected);
+	    // Check if the pressed key is a number between '1' and '4'
+	    if (key >= '1' && key <= '4') {
+	        if (firstNumSelect) {
+	            xCoord = key - '0';  // Convert char to integer
+	            firstNumSelect = false;  // Now waiting for the second coordinate input
+	        } else {
+	            yCoord = key - '0';  // Convert char to integer
+	            firstNumSelect = true;  // Reset for the next input
 
-			robot.mouseMove(selectedButton.x + selectedButton.width*3/4 + windowPos.x, 
-							selectedButton.y + selectedButton.height*4/3 + windowPos.y);
-		}
-		}
-		
-		// can use the keyboard if you wish
-		// https://processing.org/reference/keyTyped_.html
-		// https://processing.org/reference/keyCode.html
-		
+	            // Calculate the correct button index for the 4x4 grid
+	            int buttonIndex = (yCoord - 1) * 4 + (xCoord - 1);
+	            Rectangle selectedButton = getButtonLocation(buttonIndex);
+
+	            // Calculate the exact center of the button
+	            int targetX = selectedButton.x + selectedButton.width*3 / 4;
+	            int targetY = selectedButton.y + selectedButton.height*4 / 3;
+
+	            // Move the mouse to the exact center of the selected button
+	            robot.mouseMove(targetX + windowPos.x, targetY + windowPos.y);
+	        }
+	    }
 	}
 }
