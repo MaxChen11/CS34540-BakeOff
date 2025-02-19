@@ -11,6 +11,98 @@ import javax.swing.SwingUtilities;
 import processing.core.PApplet;
 import java.awt.*;
 
+abstract class Mouse {
+	float x, y;
+	float offsetX, offsetY;
+	float initialX = 0, initialY = 0;
+	float initialCursorX = 0, initialCursorY = 0;
+	float cableX, cableY;
+	float w = 50, h = 70;
+	boolean isDragging = false;
+	float sensitivity = 3;
+
+	Mouse(float x, float y, float cableX, float cableY) {
+		this.x = x;
+		this.y = y;
+		this.initialX = x;
+		this.initialY = y;
+		this.cableX = cableX;
+		this.cableY = cableY;
+	}
+
+	void update(PApplet p) {
+		if (isDragging) {
+			x = p.mouseX + offsetX;
+			y = p.mouseY + offsetY;
+		}
+	}
+
+	void display(PApplet p) {
+
+		p.stroke(50);
+		p.strokeWeight(4);
+		p.noFill();
+
+		// cable
+		p.bezier(cableX, cableY, cableX, y - 50, x, y - 50, x, y - h / 2);
+
+		p.fill(180);
+		p.rect(x-(w/2), y-(h/2), w, h, 30); // body
+		p.fill(150);
+		p.ellipse(x, y - 10, 20, 25); // button
+
+
+		p.noStroke();
+
+		// cursor
+		p.fill(255, 0, 0);
+		p.ellipse(getMouseX(), getMouseY(), 10, 10);
+
+	}
+
+	boolean pressed(PApplet p) {
+		// pressed button
+		float db = p.dist(p.mouseX, p.mouseY, x, y-10);
+		if (db < 20) { // Check if clicking inside the mouse body
+			this.onMouseButtonPressed();
+		}
+
+		// pressed body
+		float d = p.dist(p.mouseX, p.mouseY, x, y);
+		if (d < w / 2 + 20) { // Check if clicking inside the mouse body
+			isDragging = true;
+			offsetX = x - p.mouseX;
+			offsetY = y - p.mouseY;
+			return true;
+		}
+
+		return false;
+
+	}
+
+	abstract void onMouseButtonPressed();
+
+	float getMouseX() {
+		return (x - initialX) * sensitivity + initialCursorX;
+	}
+
+	float getMouseY() {
+		return (y - initialY) * sensitivity + initialCursorY;
+	}
+
+	void setMouseX(float mx) {
+		initialCursorX = mx;
+	}
+
+	void setMouseY(float my) {
+		initialCursorY = my;
+	}
+
+	void released(PApplet p) {
+		isDragging = false;
+	}
+}
+
 public class BakeOff1 extends PApplet {
 	// when in doubt, consult the Processsing reference:
 	// https://processing.org/reference/
@@ -38,11 +130,59 @@ public class BakeOff1 extends PApplet {
 	int yCoord = 0;
 	int currButtonSelected = 0;
 
+	Mouse mouse = new Mouse(600,100, 600, 0) {
+
+		void onMouseButtonPressed() {
+			attemptPress(mouse.getMouseX(), mouse.getMouseY());
+		}
+
+	};
+
 	/**
 	 * https://processing.org/reference/settings_.html#:~:text=The%20settings()%20method%20runs,commands%20in%20the%20Processing%20API.
 	 */
 	public void settings() {
 		size(700, 700);
+	}
+
+	public void attemptPress(float pressMouseX, float pressMouseY) {
+		if (trialNum >= trials.size()) // check if task is done
+			return;
+
+		if (trialNum == 0) // check if first click, if so, record start time
+			startTime = millis();
+
+		if (trialNum == trials.size() - 1) // check if final click
+		{
+			finishTime = millis();
+			// write to terminal some output:
+			System.out.println("we're all done!");
+		}
+
+		Rectangle bounds = getButtonLocation(trials.get(trialNum));
+
+		// check to see if cursor was inside button
+		if ((pressMouseX > bounds.x && pressMouseX < bounds.x + bounds.width)
+				&& (pressMouseX > bounds.y && pressMouseX < bounds.y + bounds.height)) // test to see if hit was within bounds
+		{
+			System.out.println("HIT! " + trialNum + " " + (millis() - startTime)); // success
+			hits++;
+		} else {
+			System.out.println("MISSED! " + trialNum + " " + (millis() - startTime)); // fail
+			misses++;
+		}
+
+		trialNum++; // Increment trial number
+
+		// reset to the default square
+		xCoord = 0;
+		yCoord = 0;
+
+		// in this example design, I move the cursor back to the middle after each click
+		// Note. When running from eclipse the robot class affects the whole screen not
+		// just the GUI, so the mouse may move outside of the GUI.
+		// robot.mouseMove(width/2, (height)/2); //on click, move cursor to roughly
+		// center of window!
 	}
 
 	/**
@@ -76,6 +216,9 @@ public class BakeOff1 extends PApplet {
 		System.out.println("trial order: " + trials); // print out order for reference
 
 		surface.setLocation(0, 0);// put window in top left corner of screen (doesn't always work)
+
+		mouse.setMouseX(width/2);
+		mouse.setMouseY(height/2);
 	}
 
 	public void draw() {
@@ -142,45 +285,19 @@ public class BakeOff1 extends PApplet {
 		fill(255, 0, 0, 200); // set fill color to translucent red
 		ellipse(mouseX, mouseY, 20, 20); // draw user cursor as a circle with a diameter of 20
 
+		mouse.update(this);
+		mouse.display(this);
 	}
 
 	public void mousePressed() // test to see if hit was in target!
 	{
-		if (trialNum >= trials.size()) // check if task is done
-			return;
-
-		if (trialNum == 0) // check if first click, if so, record start time
-			startTime = millis();
-
-		if (trialNum == trials.size() - 1) // check if final click
-		{
-			finishTime = millis();
-			// write to terminal some output:
-			System.out.println("we're all done!");
+		if (!mouse.pressed(this)) { // the mouse is not being clicked
+			attemptPress(mouseX, mouseY); // see if the cursor is over a tile; register the click
 		}
+	}
 
-		Rectangle bounds = getButtonLocation(trials.get(trialNum));
-
-		// check to see if cursor was inside button
-		if ((mouseX > bounds.x && mouseX < bounds.x + bounds.width)
-				&& (mouseY > bounds.y && mouseY < bounds.y + bounds.height)) // test to see if hit was within bounds
-		{
-			System.out.println("HIT! " + trialNum + " " + (millis() - startTime)); // success
-			hits++;
-		} else {
-			System.out.println("MISSED! " + trialNum + " " + (millis() - startTime)); // fail
-			misses++;
-		}
-
-		trialNum++; // Increment trial number
-		xCoord = 0;
-		yCoord = 0;
-
-		// in this example design, I move the cursor back to the middle after each click
-		// Note. When running from eclipse the robot class affects the whole screen not
-		// just the GUI, so the mouse may move outside of the GUI.
-		// robot.mouseMove(width/2, (height)/2); //on click, move cursor to roughly
-		// center of window!
+	public void mouseReleased() {
+		mouse.released(this);
 	}
 
 	// probably shouldn't have to edit this method
