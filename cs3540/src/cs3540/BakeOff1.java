@@ -318,6 +318,7 @@ public class BakeOff1 extends PApplet {
 		if (key >= '1' && key <= '4') {
 			if (firstNumSelect) {
 				xCoord = key - '0'; // Convert char to integer
+				yCoord = 0; // Reset y-coordinate to indicate it's not entered yet
 				firstNumSelect = false; // Now waiting for the second coordinate input
 			} else {
 				yCoord = key - '0'; // Convert char to integer
