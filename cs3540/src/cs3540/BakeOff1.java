@@ -51,7 +51,7 @@ public class BakeOff1 extends PApplet {
 	Robot robot;
 
 	// Experiment configuration
-	int numRepeats = 1; // sets the number of times each button repeats in the test
+	int numRepeats = 3; // sets the number of times each button repeats in the test
 
 	// Key press tracking for selecting a target using coordinates
 	boolean firstNumSelect = true; // Tracks whether the user is selecting X or Y coordinate
